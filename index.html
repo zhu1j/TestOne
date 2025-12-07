@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生登录管理系统 - 学生列表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* 顶部导航栏 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info span {
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 主内容区 */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* 操作区 */
+        .action-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .action-bar h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .add-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-item label {
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .form-item input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-item input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        /* 表格区 */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h3 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8f9fa;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            font-weight: 600;
+            color: #333;
+        }
+
+        td {
+            color: #666;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btns .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* 提示信息 */
+        .message {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* 编辑模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 450px;
+            max-width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .modal-form .form-item {
+            margin-bottom: 15px;
+        }
+
+        .modal-form .form-item input {
+            width: 100%;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        /* 空数据提示 */
+        .empty-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <div class="header">
+        <h1>学生登录管理系统</h1>
+        <div class="user-info">
+            <span>欢迎，<strong id="currentUser">-</strong></span>
+            <button class="logout-btn" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="container">
+        <!-- 提示信息 -->
+        <div class="message" id="message"></div>
+
+        <!-- 新增学生表单 -->
+        <div class="action-bar">
+            <h3>新增学生</h3>
+            <form class="add-form" id="addForm">
+                <div class="form-item">
+                    <label>用户名 *</label>
+                    <input type="text" id="addUsername" placeholder="用户名" required>
+                </div>
+                <div class="form-item">
+                    <label>密码 *</label>
+                    <input type="password" id="addPassword" placeholder="密码" required>
+                </div>
+                <div class="form-item">
+                    <label>姓名 *</label>
+                    <input type="text" id="addName" placeholder="姓名" required>
+                </div>
+                <div class="form-item">
+                    <label>年龄</label>
+                    <input type="number" id="addAge" placeholder="年龄">
+                </div>
+                <div class="form-item">
+                    <label>班级</label>
+                    <input type="text" id="addClazz" placeholder="班级">
+                </div>
+                  <div class="form-item">
+                    <label>电话</label>
+                    <input type="text" id="addTelephone" placeholder="电话">
+                </div>
+                <button type="submit" class="btn btn-primary">新增学生</button>
+            </form>
+        </div>
+
+        <!-- 学生列表 -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>学生列表</h3>
+                <button class="btn btn-secondary" onclick="loadStudents()">刷新列表</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>姓名</th>
+                        <th>年龄</th>
+                        <th>班级</th>
+                        <th>电话</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="studentList">
+                    <tr>
+                        <td colspan="6" class="loading">加载中...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 编辑模态框 -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>编辑学生信息</h3>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form class="modal-form" id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-item">
+                    <label>用户名 *</label>
+                    <input type="text" id="editUsername" placeholder="用户名" required>
+                </div>
+                <div class="form-item">
+                    <label>密码 *</label>
+                    <input type="password" id="editPassword" placeholder="密码" required>
+                </div>
+                <div class="form-item">
+                    <label>姓名 *</label>
+                    <input type="text" id="editName" placeholder="姓名" required>
+                </div>
+                <div class="form-item">
+                    <label>年龄</label>
+                    <input type="number" id="editAge" placeholder="年龄">
+                </div>
+                <div class="form-item">
+                    <label>班级</label>
+                    <input type="text" id="editClazz" placeholder="班级">
+                </div>
+                 <div class="form-item">
+                    <label>电话</label>
+                    <input type="text" id="editTelephone" placeholder="电话">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 后端接口基础地址
+        const BASE_URL = 'http://localhost:8080/student';
+
+        // 当前登录用户
+        let currentUser = null;
+
+        // 页面加载时执行
+        window.onload = function() {
+            // 检查登录状态
+            const loginUserStr = localStorage.getItem('loginUser');
+            if (!loginUserStr) {
+                // 未登录，跳转到登录页
+                window.location.href = 'login.html';
+                return;
+            }
+
+            currentUser = JSON.parse(loginUserStr);
+            document.getElementById('currentUser').textContent = currentUser.name || currentUser.username;
+
+            // 加载学生列表
+            loadStudents();
+        };
+
+        // 退出登录
+        function logout() {
+            localStorage.removeItem('loginUser');
+            window.location.href = 'login.html';
+        }
+
+        // 显示提示信息
+        function showMessage(type, text) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = 'message ' + type;
+            messageDiv.textContent = text;
+            messageDiv.style.display = 'block';
+
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // 加载学生列表
+        async function loadStudents() {
+            const tbody = document.getElementById('studentList');
+            tbody.innerHTML = '<tr><td colspan="7" class="loading">加载中...</td></tr>';
+
+            try {
+                const response = await fetch(`${BASE_URL}/list`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const students = result.data;
+                    if (students.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="empty-data">暂无学生数据</td></tr>';
+                    } else {
+                        tbody.innerHTML = students.map(student => `
+                            <tr>
+                                <td>${student.id}</td>
+                                <td>${student.username}</td>
+                                <td>${student.name}</td>
+                                <td>${student.age || '-'}</td>
+                                <td>${student.clazz || '-'}</td>
+                                <td>${student.telephone || '-'}</td>
+                                <td class="action-btns">
+                                    <button class="btn btn-warning" onclick="openEditModal(${student.id})">编辑</button>
+                                    <button class="btn btn-danger" onclick="deleteStudent(${student.id})">删除</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                } else {
+                    showMessage('error', result.msg || '加载失败');
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-data">加载失败</td></tr>';
+                }
+            } catch (error) {
+                console.error('加载学生列表失败:', error);
+                showMessage('error', '网络错误，请检查后端服务是否启动');
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-data">网络错误</td></tr>';
+            }
+        }
+
+        // 新增学生表单提交
+        document.getElementById('addForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const student = {
+                username: document.getElementById('addUsername').value.trim(),
+                password: document.getElementById('addPassword').value.trim(),
+                name: document.getElementById('addName').value.trim(),
+                age: document.getElementById('addAge').value ? parseInt(document.getElementById('addAge').value) : null,
+                clazz: document.getElementById('addClazz').value.trim() || null,
+                telephone: document.getElementById('addTelephone').value.trim() || null
+            };
+
+            // 校验必填项
+            if (!student.username || !student.password || !student.name) {
+                showMessage('error', '请填写必填项（用户名、密码、姓名）');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(student)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('success', '新增成功');
+                    // 清空表单
+                    document.getElementById('addForm').reset();
+                    // 刷新列表
+                    loadStudents();
+                } else {
+                    showMessage('error', result.msg || '新增失败');
+                }
+            } catch (error) {
+                console.error('新增学生失败:', error);
+                showMessage('error', '网络错误');
+            }
+        });
+
+        // 打开编辑模态框
+        async function openEditModal(id) {
+            try {
+                const response = await fetch(`${BASE_URL}/${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const student = result.data;
+                    document.getElementById('editId').value = student.id;
+                    document.getElementById('editUsername').value = student.username;
+                    document.getElementById('editPassword').value = student.password;
+                    document.getElementById('editName').value = student.name;
+                    document.getElementById('editAge').value = student.age || '';
+                    document.getElementById('editClazz').value = student.clazz || '';
+                    document.getElementById('editTelephone').value = student.telephone || '';
+
+                    document.getElementById('editModal').classList.add('show');
+                } else {
+                    showMessage('error', '获取学生信息失败');
+                }
+            } catch (error) {
+                console.error('获取学生信息失败:', error);
+                showMessage('error', '网络错误');
+            }
+        }
+
+        // 关闭编辑模态框
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        // 编辑表单提交
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const student = {
+                id: parseInt(document.getElementById('editId').value),
+                username: document.getElementById('editUsername').value.trim(),
+                password: document.getElementById('editPassword').value.trim(),
+                name: document.getElementById('editName').value.trim(),
+                age: document.getElementById('editAge').value ? parseInt(document.getElementById('editAge').value) : null,
+                clazz: document.getElementById('editClazz').value.trim() || null,
+                telephone: document.getElementById('editTelephone').value.trim() || null
+            };  
+
+            // 校验必填项
+            if (!student.username || !student.password || !student.name) {
+                showMessage('error', '请填写必填项（用户名、密码、姓名）');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(student)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('success', '更新成功');
+                    closeEditModal();
+                    loadStudents();
+                } else {
+                    showMessage('error', result.msg || '更新失败');
+                }
+            } catch (error) {
+                console.error('更新学生失败:', error);
+                showMessage('error', '网络错误');
+            }
+        });
+
+        // 删除学生
+        async function deleteStudent(id) {
+            if (!confirm('确定要删除该学生吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/delete/${id}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('success', '删除成功');
+                    loadStudents();
+                } else {
+                    showMessage('error', result.msg || '删除失败');
+                }
+            } catch (error) {
+                console.error('删除学生失败:', error);
+                showMessage('error', '网络错误');
+            }
+        }
+
+        // 点击模态框外部关闭
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+    </script>
+</body>
+</html>
